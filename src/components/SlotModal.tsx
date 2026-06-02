@@ -2,151 +2,118 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Icon from "@/components/ui/icon"
 
-const COLS = 6
-const ROWS = 5
+const COLS = 5
+const ROWS = 3
 
-const SYMBOLS = [
+// Каждый столбец «принадлежит» своему богу/символу
+const COL_SYMBOLS = [
   {
-    id: "perun",
-    name: "Перун",
+    id: "perun", name: "Перун",
     img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/ac8d15a5-e9e0-4cb8-9c30-34b945946c46.jpg",
-    value: 50,
-    color: "#4FC3F7",
+    value: 50, color: "#4FC3F7", glow: "rgba(79,195,247,0.7)",
   },
   {
-    id: "wild",
-    name: "Wild",
-    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/f9180b85-40e1-42b0-b8a4-7300e1532bc3.jpg",
-    value: 40,
-    color: "#FFD700",
-  },
-  {
-    id: "veles",
-    name: "Велес",
+    id: "veles", name: "Велес",
     img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/f45aa3a9-691a-472c-b283-55f4d67e083e.jpg",
-    value: 25,
-    color: "#66BB6A",
+    value: 25, color: "#66BB6A", glow: "rgba(102,187,106,0.7)",
   },
   {
-    id: "axe",
-    name: "Топор",
+    id: "wild", name: "Wild",
+    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/f9180b85-40e1-42b0-b8a4-7300e1532bc3.jpg",
+    value: 100, color: "#FFD700", glow: "rgba(255,215,0,0.8)",
+  },
+  {
+    id: "axe", name: "Топор",
     img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/35736db8-78be-4bc2-bb2e-062667961c03.jpg",
-    value: 15,
-    color: "#FFA726",
+    value: 15, color: "#FFA726", glow: "rgba(255,167,38,0.7)",
   },
   {
-    id: "chalice",
-    name: "Чаша",
-    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/17d5ac4a-f06d-4020-bdd9-5d6aa5c1cd1c.jpg",
-    value: 10,
-    color: "#AB47BC",
-  },
-  {
-    id: "rune",
-    name: "Руна",
+    id: "rune", name: "Руна",
     img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/c058b9e3-b998-41d0-bfaa-fa7ea31f6906.jpg",
-    value: 5,
-    color: "#EF5350",
+    value: 10, color: "#EF5350", glow: "rgba(239,83,80,0.7)",
   },
 ]
 
-type Grid = number[][]
-type WinCell = { row: number; col: number; color: string }
+// Множители которые падают сверху на колонки
+const MULT_VALUES = [2, 3, 5, 10, 15, 25, 50, 100]
 
-function randomSymbolIdx() {
-  const weights = [2, 3, 8, 12, 15, 20]
-  const total = weights.reduce((a, b) => a + b, 0)
-  let r = Math.random() * total
-  for (let i = 0; i < weights.length; i++) {
-    r -= weights[i]
-    if (r <= 0) return i
-  }
-  return 5
+type ColMultipliers = (number | null)[]
+type Grid = number[][] // grid[row][col] — индекс символа (0..4 = символ колонки, или рандом)
+
+function randomRow(): number[] {
+  // Каждая ячейка — символ своей колонки (75%) или рандомный сосед (25%)
+  return Array.from({ length: COLS }, (_, col) => {
+    return Math.random() < 0.75 ? col : Math.floor(Math.random() * COLS)
+  })
 }
 
 function generateGrid(): Grid {
-  return Array.from({ length: ROWS }, () =>
-    Array.from({ length: COLS }, randomSymbolIdx)
-  )
+  return Array.from({ length: ROWS }, randomRow)
 }
 
-function findWins(grid: Grid): { cells: WinCell[]; totalWin: number; multiplier: number } {
-  const winCells: WinCell[] = []
-  let totalWin = 0
-  const counted = new Set<string>()
+function randomMult(): number | null {
+  if (Math.random() > 0.3) return null
+  return MULT_VALUES[Math.floor(Math.random() * MULT_VALUES.length)]
+}
 
-  for (let symIdx = 0; symIdx < SYMBOLS.length; symIdx++) {
-    if (symIdx === 1) continue // wild не считаем отдельно
-    const ownSymbols: { row: number; col: number }[] = []
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        if (grid[r][c] === symIdx || grid[r][c] === 1) {
-          ownSymbols.push({ row: r, col: c })
-        }
-      }
-    }
-    const own = ownSymbols.filter(({ row, col }) => grid[row][col] === symIdx)
-    if (own.length >= 8) {
-      const mult =
-        own.length >= 20 ? 100 :
-        own.length >= 15 ? 50 :
-        own.length >= 12 ? 20 :
-        own.length >= 8 ? 8 : 0
-      if (mult > 0) {
-        own.forEach(({ row, col }) => {
-          const key = `${row}-${col}`
-          if (!counted.has(key)) {
-            counted.add(key)
-            winCells.push({ row, col, color: SYMBOLS[symIdx].color })
-          }
-        })
-        totalWin += SYMBOLS[symIdx].value * mult
-      }
+function generateMultipliers(): ColMultipliers {
+  return Array.from({ length: COLS }, randomMult)
+}
+
+// Выигрыш: если вся колонка из одного символа — выигрыш
+function findWins(grid: Grid, multipliers: ColMultipliers): { winCols: number[]; totalWin: number } {
+  const winCols: number[] = []
+  let totalWin = 0
+
+  for (let col = 0; col < COLS; col++) {
+    const allSame = grid.every((row) => row[col] === col)
+    const hasWild = grid.some((row) => row[col] === 2) // wild = col 2
+    const nonWild = grid.filter((row) => row[col] !== 2)
+    const nonWildSame = nonWild.length === 0 || nonWild.every((row) => row[col] === col)
+
+    if (allSame || (hasWild && nonWildSame)) {
+      winCols.push(col)
+      const sym = COL_SYMBOLS[col]
+      const mult = multipliers[col] ?? 1
+      totalWin += sym.value * mult * 2
     }
   }
-
-  const multiplier = totalWin > 0 ? Math.ceil(totalWin / 10) : 0
-  return { cells: winCells, totalWin, multiplier }
+  return { winCols, totalWin }
 }
 
 function playSound(type: "spin" | "win" | "bigwin") {
   try {
-    const AudioCtx = (window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
+    const AudioCtx = window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
     if (!AudioCtx) return
     const ctx = new AudioCtx()
     if (type === "spin") {
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
+      const osc = ctx.createOscillator(); const gain = ctx.createGain()
       osc.connect(gain); gain.connect(ctx.destination)
-      osc.frequency.setValueAtTime(200, ctx.currentTime)
-      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.3)
-      gain.gain.setValueAtTime(0.1, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
-      osc.start(); osc.stop(ctx.currentTime + 0.3)
+      osc.frequency.setValueAtTime(220, ctx.currentTime)
+      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.35)
+      gain.gain.setValueAtTime(0.12, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35)
+      osc.start(); osc.stop(ctx.currentTime + 0.35)
     } else if (type === "win") {
-      [0, 0.1, 0.2].forEach((delay, i) => {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.connect(gain); gain.connect(ctx.destination)
-        osc.frequency.setValueAtTime([523, 659, 784][i], ctx.currentTime + delay)
-        gain.gain.setValueAtTime(0.15, ctx.currentTime + delay)
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25)
-        osc.start(ctx.currentTime + delay); osc.stop(ctx.currentTime + delay + 0.25)
+      [0, 0.12, 0.24].forEach((d, i) => {
+        const o = ctx.createOscillator(); const g = ctx.createGain()
+        o.connect(g); g.connect(ctx.destination)
+        o.frequency.setValueAtTime([523, 659, 784][i], ctx.currentTime + d)
+        g.gain.setValueAtTime(0.15, ctx.currentTime + d)
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 0.3)
+        o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + 0.3)
       })
     } else {
-      [0, 0.1, 0.2, 0.35, 0.5].forEach((delay, i) => {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.connect(gain); gain.connect(ctx.destination)
-        osc.frequency.setValueAtTime([523, 659, 784, 1047, 1319][i], ctx.currentTime + delay)
-        gain.gain.setValueAtTime(0.2, ctx.currentTime + delay)
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.3)
-        osc.start(ctx.currentTime + delay); osc.stop(ctx.currentTime + delay + 0.3)
+      [0, 0.1, 0.2, 0.35, 0.5, 0.65].forEach((d, i) => {
+        const o = ctx.createOscillator(); const g = ctx.createGain()
+        o.connect(g); g.connect(ctx.destination)
+        o.frequency.setValueAtTime([523, 659, 784, 1047, 1175, 1319][i], ctx.currentTime + d)
+        g.gain.setValueAtTime(0.2, ctx.currentTime + d)
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 0.35)
+        o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + 0.35)
       })
     }
-  } catch {
-    // AudioContext not supported
-  }
+  } catch { /* AudioContext not supported */ }
 }
 
 interface SlotModalProps {
@@ -156,34 +123,35 @@ interface SlotModalProps {
 
 export function SlotModal({ game, onClose }: SlotModalProps) {
   const [grid, setGrid] = useState<Grid>(generateGrid)
+  const [multipliers, setMultipliers] = useState<ColMultipliers>(generateMultipliers)
   const [spinning, setSpinning] = useState(false)
   const [balance, setBalance] = useState(1000)
   const [bet, setBet] = useState(10)
-  const [winCells, setWinCells] = useState<WinCell[]>([])
+  const [winCols, setWinCols] = useState<number[]>([])
   const [winAmount, setWinAmount] = useState<number | null>(null)
-  const [multiplier, setMultiplier] = useState<number | null>(null)
   const [spinningCols, setSpinningCols] = useState<boolean[]>(Array(COLS).fill(false))
+  const [droppingMults, setDroppingMults] = useState<ColMultipliers>(Array(COLS).fill(null))
   const intervalsRef = useRef<ReturnType<typeof setInterval>[]>([])
 
-  useEffect(() => {
-    return () => intervalsRef.current.forEach(clearInterval)
-  }, [])
+  useEffect(() => () => intervalsRef.current.forEach(clearInterval), [])
 
   const spin = useCallback(() => {
     if (spinning || balance < bet) return
     setBalance((b) => b - bet)
-    setWinCells([])
+    setWinCols([])
     setWinAmount(null)
-    setMultiplier(null)
     setSpinning(true)
+    setDroppingMults(Array(COLS).fill(null))
     playSound("spin")
 
     const finalGrid = generateGrid()
-    const startDelays = [0, 120, 240, 360, 480, 600]
-    const spinDurations = [900, 1100, 1300, 1500, 1700, 1950]
+    const finalMults = generateMultipliers()
 
     intervalsRef.current.forEach(clearInterval)
     intervalsRef.current = []
+
+    const startDelays = [0, 100, 200, 300, 400]
+    const stopDelays =  [900, 1050, 1200, 1350, 1500]
 
     startDelays.forEach((startDelay, col) => {
       setTimeout(() => {
@@ -192,10 +160,10 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
         const id = setInterval(() => {
           setGrid((prev) => {
             const next = prev.map((row) => [...row])
-            for (let r = 0; r < ROWS; r++) next[r][col] = randomSymbolIdx()
+            for (let r = 0; r < ROWS; r++) next[r][col] = Math.floor(Math.random() * COLS)
             return next
           })
-        }, 55)
+        }, 60)
         intervalsRef.current[col] = id
 
         setTimeout(() => {
@@ -207,33 +175,34 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
             return next
           })
 
+          // Показываем падающий множитель для колонки
+          if (finalMults[col] !== null) {
+            setDroppingMults((prev) => { const n = [...prev]; n[col] = finalMults[col]; return n })
+          }
+
           if (col === COLS - 1) {
             setTimeout(() => {
+              setMultipliers(finalMults)
               setSpinning(false)
-              const { cells, totalWin, multiplier: mult } = findWins(finalGrid)
-              if (cells.length > 0) {
-                setWinCells(cells)
+              const { winCols: wc, totalWin } = findWins(finalGrid, finalMults)
+              if (wc.length > 0) {
+                setWinCols(wc)
                 const actualWin = Math.round(totalWin * (bet / 10))
                 setWinAmount(actualWin)
-                setMultiplier(mult)
                 setBalance((b) => b + actualWin)
-                playSound(actualWin >= bet * 10 ? "bigwin" : "win")
+                playSound(actualWin >= bet * 20 ? "bigwin" : "win")
               } else {
                 setWinAmount(0)
               }
-            }, 150)
+              setDroppingMults(Array(COLS).fill(null))
+            }, 200)
           }
-        }, spinDurations[col] - startDelay)
+        }, stopDelays[col] - startDelay)
       }, startDelay)
     })
   }, [spinning, balance, bet])
 
   if (!game) return null
-
-  const isCellWin = (row: number, col: number) =>
-    winCells.some((c) => c.row === row && c.col === col)
-  const getWinColor = (row: number, col: number) =>
-    winCells.find((c) => c.row === row && c.col === col)?.color ?? null
 
   return (
     <AnimatePresence>
@@ -241,7 +210,7 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3"
         onClick={onClose}
       >
         <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
@@ -250,163 +219,220 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
           initial={{ scale: 0.88, opacity: 0, y: 40 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.88, opacity: 0, y: 40 }}
-          transition={{ type: "spring", damping: 22, stiffness: 300 }}
-          className="relative w-full max-w-4xl overflow-hidden rounded-3xl"
+          transition={{ type: "spring", damping: 22, stiffness: 280 }}
+          className="relative w-full max-w-2xl overflow-hidden rounded-3xl"
           style={{
-            background: "linear-gradient(180deg, #1a0505 0%, #0d0202 50%, #1a0505 100%)",
+            background: "linear-gradient(180deg, #1a0505 0%, #0d0202 60%, #1a0505 100%)",
             border: "2px solid rgba(255,80,50,0.3)",
-            boxShadow: "0 0 80px -10px rgba(255,60,0,0.35), 0 0 40px -20px rgba(80,160,255,0.25)",
+            boxShadow: "0 0 100px -15px rgba(255,60,0,0.4), 0 0 50px -20px rgba(80,160,255,0.2)",
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-70" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-80" />
 
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-red-900/30">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-red-900/30">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-lg">⚡</div>
+              <span className="text-2xl">⚡</span>
               <div>
-                <h2 className="text-lg font-bold text-white">Перун's Thunder</h2>
-                <p className="text-xs text-red-300/60">Slavic Gods • Cluster Pays • RTP 96.50%</p>
+                <h2 className="text-base font-black text-white tracking-wide">ПЕРУН'S THUNDER</h2>
+                <p className="text-[10px] text-red-300/50 uppercase tracking-widest">Slavic Gods • Cluster Pays</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-400/10 border border-yellow-400/20">
-                <span className="text-sm">🪙</span>
-                <motion.span key={balance} initial={{ scale: 1.3 }} animate={{ scale: 1 }} className="font-bold text-sm text-yellow-400">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/20">
+                <span className="text-xs">🪙</span>
+                <motion.span key={balance} initial={{ scale: 1.4 }} animate={{ scale: 1 }} className="font-black text-sm text-yellow-400">
                   {balance.toLocaleString()}
                 </motion.span>
               </div>
               <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
-                <Icon name="X" size={20} />
+                <Icon name="X" size={18} />
               </button>
             </div>
           </div>
 
-          {/* Сетка 6×5 */}
-          <div className="px-4 pt-4 pb-2">
+          {/* Игровое поле */}
+          <div className="px-5 pt-5 pb-3">
             <div
-              className="relative rounded-2xl overflow-hidden p-3"
+              className="rounded-2xl overflow-visible p-3 relative"
               style={{
                 background: "linear-gradient(180deg, #0d0000, #1a0303)",
-                border: "1px solid rgba(255,80,50,0.25)",
-                boxShadow: "inset 0 0 50px rgba(200,30,0,0.2)",
+                border: "1px solid rgba(255,80,50,0.2)",
+                boxShadow: "inset 0 0 60px rgba(200,30,0,0.15)",
               }}
             >
-              <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
-                {Array.from({ length: COLS }).map((_, col) => (
-                  <div key={col} className="flex flex-col gap-1.5">
-                    {Array.from({ length: ROWS }).map((_, row) => {
-                      const symIdx = grid[row]?.[col] ?? 0
-                      const sym = SYMBOLS[symIdx]
-                      const isWin = isCellWin(row, col)
-                      const winColor = getWinColor(row, col)
-                      const isColSpinning = spinningCols[col]
-
-                      return (
-                        <motion.div
-                          key={`${col}-${row}`}
-                          className="relative rounded-xl overflow-hidden aspect-square"
-                          animate={
-                            isColSpinning ? { y: [0, -6, 6, 0] } :
-                            isWin ? { scale: [1, 1.07, 1] } : {}
-                          }
-                          transition={
-                            isColSpinning
-                              ? { duration: 0.1, repeat: Infinity, ease: "linear" }
-                              : isWin
-                              ? { duration: 0.7, repeat: Infinity, ease: "easeInOut" }
-                              : {}
-                          }
-                          style={{
-                            background: isWin
-                              ? `radial-gradient(circle, ${winColor}35, #12022a)`
-                              : "rgba(255,255,255,0.04)",
-                            border: isWin
-                              ? `2px solid ${winColor}`
-                              : "1px solid rgba(150,80,255,0.15)",
-                            boxShadow: isWin
-                              ? `0 0 18px ${winColor}70, inset 0 0 8px ${winColor}25`
-                              : "none",
-                          }}
-                        >
-                          <img
-                            src={sym.img}
-                            alt={sym.name}
-                            className={`w-full h-full object-cover select-none transition-all duration-75 ${
-                              isColSpinning ? "blur-[1.5px] brightness-60" : "brightness-100"
-                            }`}
-                            draggable={false}
-                          />
-                          {isWin && (
-                            <motion.div
-                              className="absolute inset-0"
-                              animate={{ opacity: [0, 0.45, 0] }}
-                              transition={{ duration: 0.9, repeat: Infinity }}
-                              style={{ background: `radial-gradient(circle, ${winColor}90, transparent)` }}
-                            />
-                          )}
-                          {sym.id === "wild" && !isColSpinning && (
-                            <div className="absolute bottom-0 left-0 right-0 text-center text-[7px] font-black text-cyan-300 bg-black/70 py-0.5 leading-tight tracking-widest">
-                              WILD
-                            </div>
-                          )}
-                        </motion.div>
-                      )
-                    })}
-                  </div>
-                ))}
+              {/* Множители сверху колонок */}
+              <div className="grid mb-2" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)`, gap: "10px" }}>
+                {Array.from({ length: COLS }).map((_, col) => {
+                  const mult = multipliers[col]
+                  const dropping = droppingMults[col]
+                  const sym = COL_SYMBOLS[col]
+                  return (
+                    <div key={col} className="flex justify-center">
+                      <AnimatePresence mode="wait">
+                        {dropping !== null ? (
+                          <motion.div
+                            key={`drop-${col}`}
+                            initial={{ y: -30, opacity: 0, scale: 1.3 }}
+                            animate={{ y: 0, opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ type: "spring", damping: 14 }}
+                            className="px-2.5 py-1 rounded-lg font-black text-sm"
+                            style={{
+                              background: `linear-gradient(135deg, ${sym.color}30, ${sym.color}15)`,
+                              border: `1px solid ${sym.color}`,
+                              color: sym.color,
+                              boxShadow: `0 0 12px ${sym.glow}`,
+                            }}
+                          >
+                            ×{dropping}
+                          </motion.div>
+                        ) : mult !== null ? (
+                          <motion.div
+                            key={`mult-${col}-${mult}`}
+                            initial={{ opacity: 0, scale: 0.7 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="px-2.5 py-1 rounded-lg font-black text-sm"
+                            style={{
+                              background: `linear-gradient(135deg, ${sym.color}25, ${sym.color}10)`,
+                              border: `1px solid ${sym.color}60`,
+                              color: sym.color,
+                            }}
+                          >
+                            ×{mult}
+                          </motion.div>
+                        ) : (
+                          <div key="empty" className="px-2.5 py-1 rounded-lg text-sm text-white/10 border border-white/5">
+                            ×1
+                          </div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )
+                })}
               </div>
 
-              {/* Тени сверху/снизу при кручении */}
-              {spinning && (
-                <>
-                  <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-[#0a0118] to-transparent pointer-events-none z-10" />
-                  <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#0a0118] to-transparent pointer-events-none z-10" />
-                </>
-              )}
+              {/* Сетка 5×3 — большие символы */}
+              <div className="grid" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)`, gap: "10px" }}>
+                {Array.from({ length: COLS }).map((_, col) => {
+                  const sym = COL_SYMBOLS[col]
+                  const isWinCol = winCols.includes(col)
+                  const isColSpinning = spinningCols[col]
+
+                  return (
+                    <div key={col} className="flex flex-col gap-2.5">
+                      {Array.from({ length: ROWS }).map((_, row) => {
+                        const cellSymIdx = grid[row]?.[col] ?? col
+                        const cellSym = COL_SYMBOLS[cellSymIdx]
+
+                        return (
+                          <motion.div
+                            key={`${col}-${row}`}
+                            className="relative rounded-2xl overflow-hidden"
+                            style={{ aspectRatio: "1 / 1" }}
+                            animate={
+                              isColSpinning
+                                ? { y: [0, -8, 8, 0] }
+                                : isWinCol
+                                ? { scale: [1, 1.06, 1] }
+                                : {}
+                            }
+                            transition={
+                              isColSpinning
+                                ? { duration: 0.1, repeat: Infinity, ease: "linear" }
+                                : isWinCol
+                                ? { duration: 0.7, repeat: Infinity }
+                                : {}
+                            }
+                            style={{
+                              aspectRatio: "1 / 1",
+                              background: isWinCol
+                                ? `radial-gradient(circle, ${sym.color}30, #12010100)`
+                                : "rgba(255,255,255,0.04)",
+                              border: isWinCol
+                                ? `2px solid ${sym.color}`
+                                : "1px solid rgba(255,80,50,0.12)",
+                              boxShadow: isWinCol
+                                ? `0 0 24px ${sym.glow}, inset 0 0 12px ${sym.color}20`
+                                : "none",
+                            }}
+                          >
+                            <img
+                              src={cellSym.img}
+                              alt={cellSym.name}
+                              className={`w-full h-full object-cover select-none transition-all duration-75 ${
+                                isColSpinning ? "blur-[2px] brightness-50" : "brightness-100"
+                              }`}
+                              draggable={false}
+                            />
+
+                            {/* Подсветка при выигрыше */}
+                            {isWinCol && (
+                              <motion.div
+                                className="absolute inset-0"
+                                animate={{ opacity: [0, 0.5, 0] }}
+                                transition={{ duration: 0.8, repeat: Infinity }}
+                                style={{ background: `radial-gradient(circle, ${sym.color}80, transparent)` }}
+                              />
+                            )}
+
+                            {/* Wild badge */}
+                            {cellSym.id === "wild" && !isColSpinning && (
+                              <div
+                                className="absolute bottom-0 left-0 right-0 text-center text-[9px] font-black py-0.5 tracking-widest"
+                                style={{ background: "rgba(0,0,0,0.7)", color: "#FFD700" }}
+                              >
+                                WILD
+                              </div>
+                            )}
+                          </motion.div>
+                        )
+                      })}
+
+                      {/* Название символа под колонкой */}
+                      <div className="text-center text-[10px] font-semibold mt-0.5" style={{ color: sym.color + "99" }}>
+                        {sym.name}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
             {/* Результат */}
-            <div className="min-h-[60px] flex items-center justify-center">
+            <div className="min-h-[52px] flex items-center justify-center mt-3">
               <AnimatePresence mode="wait">
                 {winAmount !== null && winAmount > 0 ? (
                   <motion.div
                     key="win"
-                    initial={{ opacity: 0, scale: 0.5, y: 15 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ type: "spring", damping: 12 }}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: "spring", damping: 10 }}
                     className="w-full text-center py-3 px-4 rounded-2xl relative overflow-hidden"
                     style={{
-                      background: "linear-gradient(135deg, rgba(255,200,50,0.12), rgba(180,120,255,0.12))",
-                      border: "1px solid rgba(255,200,50,0.35)",
+                      background: "linear-gradient(135deg, rgba(255,100,50,0.12), rgba(255,200,50,0.12))",
+                      border: "1px solid rgba(255,150,50,0.35)",
                     }}
                   >
                     <motion.div
                       animate={{ opacity: [0.2, 0.6, 0.2] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
-                      className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 via-purple-400/10 to-yellow-400/10"
+                      className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-yellow-400/10 to-red-500/10"
                     />
-                    <div className="relative z-10">
-                      <div className={`font-black mb-0.5 ${winAmount >= bet * 10 ? "text-2xl text-yellow-400" : "text-lg text-yellow-300"}`}>
-                        {winAmount >= bet * 10 ? "🏆 БОЛЬШОЙ ВЫИГРЫШ!" : "⚡ Выигрыш!"}
-                      </div>
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-2xl font-black text-white">+{winAmount.toLocaleString()} 🪙</span>
-                        {multiplier && (
-                          <span className="px-2 py-0.5 rounded-lg bg-purple-500/30 text-purple-300 text-sm font-bold border border-purple-500/30">
-                            ×{multiplier}
-                          </span>
-                        )}
-                      </div>
+                    <div className="relative z-10 flex items-center justify-center gap-3">
+                      <span className="text-xl">{winAmount >= bet * 20 ? "🏆" : "⚡"}</span>
+                      <span className="font-black text-xl text-white">
+                        {winAmount >= bet * 20 ? "ГРОМ ПЕРУНА! " : ""}+{winAmount.toLocaleString()} 🪙
+                      </span>
                     </div>
                   </motion.div>
                 ) : winAmount === 0 && !spinning ? (
                   <motion.p key="lose" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     className="text-white/25 text-sm"
                   >
-                    Нет совпадений — попробуй снова!
+                    Боги молчат... Крути ещё!
                   </motion.p>
                 ) : null}
               </AnimatePresence>
@@ -414,10 +440,11 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
           </div>
 
           {/* Панель управления */}
-          <div className="px-4 pb-5 border-t border-red-900/30 pt-3">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 flex-1 flex-wrap">
-                <span className="text-white/40 text-xs">Ставка:</span>
+          <div className="px-5 pb-5 pt-1 border-t border-red-900/20">
+            <div className="flex items-center gap-3 mt-3">
+              {/* Ставка */}
+              <div className="flex items-center gap-2 flex-1">
+                <span className="text-white/40 text-xs shrink-0">Ставка:</span>
                 <button
                   onClick={() => setBet((b) => Math.max(b - 5, 5))}
                   disabled={bet <= 5 || spinning}
@@ -449,16 +476,17 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
                 </div>
               </div>
 
+              {/* Кнопка SPIN */}
               <motion.button
                 onClick={spin}
                 disabled={spinning || balance < bet}
-                whileTap={!spinning ? { scale: 0.94 } : {}}
-                className="relative px-7 py-3 rounded-2xl font-black text-base disabled:cursor-not-allowed overflow-hidden shrink-0"
+                whileTap={!spinning ? { scale: 0.93 } : {}}
+                className="relative px-8 py-3 rounded-2xl font-black text-base disabled:cursor-not-allowed shrink-0"
                 style={{
                   background: spinning ? "linear-gradient(135deg,#444,#222)" : "linear-gradient(135deg,#c0392b,#e74c3c,#c0392b)",
                   color: spinning ? "rgba(255,255,255,0.4)" : "#fff",
-                  boxShadow: spinning ? "none" : "0 0 35px rgba(231,76,60,0.6), 0 4px 15px rgba(0,0,0,0.4)",
-                  minWidth: 130,
+                  boxShadow: spinning ? "none" : "0 0 30px rgba(231,76,60,0.6), 0 4px 12px rgba(0,0,0,0.5)",
+                  minWidth: 140,
                 }}
               >
                 {spinning ? (
@@ -474,22 +502,10 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
               </motion.button>
             </div>
 
-            {/* Легенда символов */}
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-              {SYMBOLS.map((sym) => (
-                <div key={sym.id} className="flex flex-col items-center gap-1 shrink-0 opacity-70 hover:opacity-100 transition-opacity">
-                  <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10">
-                    <img src={sym.img} alt={sym.name} className="w-full h-full object-cover" draggable={false} />
-                  </div>
-                  <span className="text-[8px] text-white/40 font-medium">×{sym.value}</span>
-                </div>
-              ))}
-            </div>
-
             {balance < bet && (
               <button
-                onClick={() => { setBalance(1000); setWinAmount(null); setWinCells([]) }}
-                className="w-full mt-3 py-2.5 rounded-xl border border-yellow-400/30 text-yellow-400 font-semibold text-sm hover:bg-yellow-400/10 transition-colors"
+                onClick={() => { setBalance(1000); setWinAmount(null); setWinCols([]) }}
+                className="w-full mt-3 py-2.5 rounded-xl border border-red-400/30 text-red-400 font-semibold text-sm hover:bg-red-400/10 transition-colors"
               >
                 🔄 Получить ещё 1000 фантиков
               </button>
