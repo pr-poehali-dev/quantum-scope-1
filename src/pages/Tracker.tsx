@@ -173,7 +173,7 @@ export default function TrackerPage() {
           <h1 className="text-4xl md:text-6xl font-black mb-2" style={{ color: "#00ff41", textShadow: "0 0 30px #00ff4160" }}>
             👁 ТРЕКЕР
           </h1>
-          <p className="text-green-500/50 text-sm">⚠️ Шуточный сервис — все данные случайные</p>
+
         </motion.div>
 
         {/* Форма поиска */}
@@ -380,18 +380,7 @@ export default function TrackerPage() {
                 ))}
               </div>
 
-              {/* Предупреждение */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="rounded-xl p-4 text-center"
-                style={{ background: "rgba(255,200,0,0.05)", border: "1px solid rgba(255,200,0,0.2)" }}
-              >
-                <p className="text-yellow-400/70 text-xs">
-                  😄 <strong>Напоминание:</strong> Все данные выше — случайные и выдуманные. Это шуточный сервис для развлечения!
-                </p>
-              </motion.div>
+
             </motion.div>
           )}
         </AnimatePresence>
