@@ -7,46 +7,46 @@ const ROWS = 5
 
 const SYMBOLS = [
   {
-    id: "zeus",
-    name: "Зевс",
-    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/6d736cc7-0d52-46d5-9951-4f88011a4208.jpg",
+    id: "perun",
+    name: "Перун",
+    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/ac8d15a5-e9e0-4cb8-9c30-34b945946c46.jpg",
     value: 50,
-    color: "#FFD700",
+    color: "#4FC3F7",
   },
   {
     id: "wild",
     name: "Wild",
-    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/4c9514d3-ab3f-4381-a56c-44a282f88257.jpg",
+    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/f9180b85-40e1-42b0-b8a4-7300e1532bc3.jpg",
     value: 40,
-    color: "#00BFFF",
+    color: "#FFD700",
+  },
+  {
+    id: "veles",
+    name: "Велес",
+    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/f45aa3a9-691a-472c-b283-55f4d67e083e.jpg",
+    value: 25,
+    color: "#66BB6A",
+  },
+  {
+    id: "axe",
+    name: "Топор",
+    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/35736db8-78be-4bc2-bb2e-062667961c03.jpg",
+    value: 15,
+    color: "#FFA726",
   },
   {
     id: "chalice",
-    name: "Кубок",
-    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/a2745158-84c8-400e-92da-2f01cb2a67cb.jpg",
-    value: 25,
-    color: "#FFB800",
-  },
-  {
-    id: "ring",
-    name: "Кольцо",
-    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/6b913358-29fd-4230-be94-28af1ecc9645.jpg",
-    value: 15,
-    color: "#9B59B6",
-  },
-  {
-    id: "hourglass",
-    name: "Часы",
-    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/7761d0a4-c071-484c-a3ad-d80e2754ec34.jpg",
+    name: "Чаша",
+    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/17d5ac4a-f06d-4020-bdd9-5d6aa5c1cd1c.jpg",
     value: 10,
-    color: "#E67E22",
+    color: "#AB47BC",
   },
   {
-    id: "scarab",
-    name: "Скарабей",
-    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/006dede6-999d-4fd7-84a7-30d9c2270def.jpg",
+    id: "rune",
+    name: "Руна",
+    img: "https://cdn.poehali.dev/projects/491be8c0-1357-457e-923b-781a7838a115/files/c058b9e3-b998-41d0-bfaa-fa7ea31f6906.jpg",
     value: 5,
-    color: "#2ECC71",
+    color: "#EF5350",
   },
 ]
 
@@ -253,21 +253,21 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
           transition={{ type: "spring", damping: 22, stiffness: 300 }}
           className="relative w-full max-w-4xl overflow-hidden rounded-3xl"
           style={{
-            background: "linear-gradient(180deg, #1a0a2e 0%, #0d0520 50%, #1a0a2e 100%)",
-            border: "2px solid rgba(255,200,50,0.3)",
-            boxShadow: "0 0 80px -10px rgba(180,120,255,0.4), 0 0 40px -20px rgba(255,200,50,0.3)",
+            background: "linear-gradient(180deg, #1a0505 0%, #0d0202 50%, #1a0505 100%)",
+            border: "2px solid rgba(255,80,50,0.3)",
+            boxShadow: "0 0 80px -10px rgba(255,60,0,0.35), 0 0 40px -20px rgba(80,160,255,0.25)",
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-60" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-70" />
 
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-yellow-400/10">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-red-900/30">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-yellow-400/20 flex items-center justify-center text-lg">⚡</div>
+              <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-lg">⚡</div>
               <div>
-                <h2 className="text-lg font-bold text-white">{game.title}</h2>
-                <p className="text-xs text-purple-300/60">{game.category} • Cluster Pays • RTP 96.50%</p>
+                <h2 className="text-lg font-bold text-white">Перун's Thunder</h2>
+                <p className="text-xs text-red-300/60">Slavic Gods • Cluster Pays • RTP 96.50%</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -288,9 +288,9 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
             <div
               className="relative rounded-2xl overflow-hidden p-3"
               style={{
-                background: "linear-gradient(180deg, #0a0118, #12022a)",
-                border: "1px solid rgba(150,80,255,0.3)",
-                boxShadow: "inset 0 0 50px rgba(100,0,200,0.25)",
+                background: "linear-gradient(180deg, #0d0000, #1a0303)",
+                border: "1px solid rgba(255,80,50,0.25)",
+                boxShadow: "inset 0 0 50px rgba(200,30,0,0.2)",
               }}
             >
               <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
@@ -414,7 +414,7 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
           </div>
 
           {/* Панель управления */}
-          <div className="px-4 pb-5 border-t border-purple-900/30 pt-3">
+          <div className="px-4 pb-5 border-t border-red-900/30 pt-3">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 flex-1 flex-wrap">
                 <span className="text-white/40 text-xs">Ставка:</span>
@@ -455,9 +455,9 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
                 whileTap={!spinning ? { scale: 0.94 } : {}}
                 className="relative px-7 py-3 rounded-2xl font-black text-base disabled:cursor-not-allowed overflow-hidden shrink-0"
                 style={{
-                  background: spinning ? "linear-gradient(135deg,#444,#222)" : "linear-gradient(135deg,#FFD700,#FFA500,#FFD700)",
-                  color: spinning ? "rgba(255,255,255,0.4)" : "#000",
-                  boxShadow: spinning ? "none" : "0 0 35px rgba(255,200,0,0.55), 0 4px 15px rgba(0,0,0,0.4)",
+                  background: spinning ? "linear-gradient(135deg,#444,#222)" : "linear-gradient(135deg,#c0392b,#e74c3c,#c0392b)",
+                  color: spinning ? "rgba(255,255,255,0.4)" : "#fff",
+                  boxShadow: spinning ? "none" : "0 0 35px rgba(231,76,60,0.6), 0 4px 15px rgba(0,0,0,0.4)",
                   minWidth: 130,
                 }}
               >
@@ -469,7 +469,7 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
                 ) : balance < bet ? (
                   <span className="text-xs">Мало фантиков</span>
                 ) : (
-                  "⚡ КРУТИТЬ"
+                  "⚡ ПЕРУН!"
                 )}
               </motion.button>
             </div>
@@ -496,7 +496,7 @@ export function SlotModal({ game, onClose }: SlotModalProps) {
             )}
           </div>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent" />
         </motion.div>
       </motion.div>
     </AnimatePresence>
