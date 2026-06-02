@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Icon from "@/components/ui/icon"
+import { TrackMap } from "@/components/TrackMap"
 
 const RUSSIA_CITIES = [
   { name: "Москва", lat: 55.7558, lng: 37.6173, region: "Московская обл." },
@@ -135,10 +136,8 @@ export default function TrackerPage() {
   const [loading, setLoading] = useState(false)
   const [loadingStep, setLoadingStep] = useState("")
   const [trackResult, setTrackResult] = useState<TrackResult | null>(null)
-  const [dotPos, setDotPos] = useState({ x: 50, y: 50 })
   const [blinkOn, setBlinkOn] = useState(true)
   const beepRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const moveRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // --- DOSSIER ---
   const [dossierName, setDossierName] = useState("")
@@ -148,22 +147,12 @@ export default function TrackerPage() {
 
   useEffect(() => () => {
     if (beepRef.current) clearInterval(beepRef.current)
-    if (moveRef.current) clearInterval(moveRef.current)
   }, [])
 
   useEffect(() => {
     if (!trackResult) return
     beepRef.current = setInterval(() => { playBeep(); setBlinkOn(b => !b) }, 2000)
-    moveRef.current = setInterval(() => {
-      setDotPos(prev => ({
-        x: Math.max(10, Math.min(90, prev.x + (Math.random() - 0.5) * 3)),
-        y: Math.max(10, Math.min(90, prev.y + (Math.random() - 0.5) * 3)),
-      }))
-    }, 1500)
-    return () => {
-      if (beepRef.current) clearInterval(beepRef.current)
-      if (moveRef.current) clearInterval(moveRef.current)
-    }
+    return () => { if (beepRef.current) clearInterval(beepRef.current) }
   }, [trackResult])
 
   const TRACK_STEPS = ["Подключение к серверам...","Обход защиты...","Запрос в базы данных...","Триангуляция сигнала...","Определение местоположения...","Получение данных...","Финализация..."]
@@ -179,7 +168,6 @@ export default function TrackerPage() {
     setLoading(false)
     const city = randomCity()
     setTrackResult({ city, ip: randomIP(), operator: randomOperator(), provider: randomProvider(), accuracy: rndInt(70, 99), lastSeen: new Date().toLocaleTimeString("ru-RU") })
-    setDotPos({ x: 20 + Math.random() * 60, y: 20 + Math.random() * 60 })
     playBeep()
   }
 
@@ -322,38 +310,14 @@ export default function TrackerPage() {
             <AnimatePresence>
               {trackResult && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                  {/* Карта */}
-                  <div className="rounded-2xl mb-4 overflow-hidden relative" style={{ border: "1px solid rgba(0,255,65,0.25)", background: "#020c02", height: 280 }}>
-                    <svg viewBox="0 0 800 400" className="w-full h-full opacity-25">
-                      <path d="M100 200 Q200 100 400 150 Q600 100 700 180 Q750 220 680 280 Q600 320 500 300 Q400 320 300 290 Q200 300 150 260 Z" fill="none" stroke={G} strokeWidth="1.5" />
-                      <path d="M200 200 Q300 170 400 180 Q500 170 600 200 Q620 230 580 250 Q500 260 400 255 Q300 260 220 240 Z" fill="rgba(0,255,65,0.04)" stroke={G} strokeWidth="0.8" />
-                      {[0,1,2,3,4,5,6,7].map(i => <line key={`h${i}`} x1="50" y1={50+i*40} x2="750" y2={50+i*40} stroke={G} strokeWidth="0.3" opacity="0.3" />)}
-                      {[0,1,2,3,4,5,6,7,8,9].map(i => <line key={`v${i}`} x1={50+i*80} y1="50" x2={50+i*80} y2="370" stroke={G} strokeWidth="0.3" opacity="0.3" />)}
-                      <text x="400" y="385" textAnchor="middle" fill={G} fontSize="11" opacity="0.4">РОССИЯ</text>
-                    </svg>
-                    {/* Точка */}
-                    <motion.div animate={{ left: `${dotPos.x}%`, top: `${dotPos.y}%` }} transition={{ duration: 1.5, ease: "easeInOut" }}
-                      className="absolute" style={{ transform: "translate(-50%,-50%)" }}>
-                      <motion.div animate={{ scale: [1,3], opacity: [0.5,0] }} transition={{ duration: 2, repeat: Infinity }}
-                        className="absolute rounded-full" style={{ width:40,height:40,marginLeft:-20,marginTop:-20,border:`1px solid ${G}` }} />
-                      <motion.div animate={{ scale: [1,2.2], opacity: [0.3,0] }} transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
-                        className="absolute rounded-full" style={{ width:24,height:24,marginLeft:-12,marginTop:-12,border:`1px solid ${G}` }} />
-                      <motion.div animate={{ opacity: blinkOn ? 1 : 0.2, scale: blinkOn ? 1.3 : 1 }} transition={{ duration: 0.3 }}
-                        className="w-4 h-4 rounded-full" style={{ background: G, boxShadow: `0 0 20px ${G}, 0 0 40px ${G}60` }} />
-                    </motion.div>
-                    {/* Инфо на карте */}
-                    <div className="absolute top-3 left-3 text-[10px] space-y-0.5" style={{ color: "rgba(0,255,65,0.6)" }}>
-                      <div>LAT: {trackResult.city.lat.toFixed(4)}° N</div>
-                      <div>LNG: {trackResult.city.lng.toFixed(4)}° E</div>
-                      <motion.div animate={{ opacity: [1,0,1] }} transition={{ duration: 1, repeat: Infinity }} className="flex items-center gap-1">
-                        <span>▶</span> TRACKING...
-                      </motion.div>
-                    </div>
-                    <div className="absolute top-3 right-3 text-[10px] text-right" style={{ color: "rgba(0,255,65,0.6)" }}>
-                      <div>ТОЧНОСТЬ: {trackResult.accuracy}%</div>
-                      <div>{trackResult.lastSeen}</div>
-                    </div>
-                  </div>
+                  <TrackMap
+                    lat={trackResult.city.lat}
+                    lng={trackResult.city.lng}
+                    cityName={trackResult.city.name}
+                    accuracy={trackResult.accuracy}
+                    lastSeen={trackResult.lastSeen}
+                    blinkOn={blinkOn}
+                  />
 
                   <div className="grid grid-cols-2 gap-3">
                     {[
