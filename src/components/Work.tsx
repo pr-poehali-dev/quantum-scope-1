@@ -1,49 +1,63 @@
 import { GlassCard } from "@/components/ui/glass-card"
 import { motion } from "framer-motion"
+import Icon from "@/components/ui/icon"
 
-const projects = [
+const games = [
   {
-    title: "НеоБанк",
-    category: "Финтех приложение",
+    title: "Sweet Bonanza",
+    category: "Pragmatic Play",
     image: "https://cdn.poehali.dev/templates/liquid-glass-agency/neon-finance-app-interface-dark-mode.jpg",
-    color: "from-blue-500/20 to-cyan-500/20",
-    description: "Переосмысление пользовательского опыта через интуитивный дизайн и плавные взаимодействия.",
-    tags: ["UX/UI", "Разработка"],
+    color: "from-pink-500/20 to-purple-500/20",
+    description: "Один из самых популярных слотов в мире. Взрывные выплаты и яркая графика.",
+    tags: ["Слот", "Популярный"],
+    rtp: "96.48%",
+    hot: true,
   },
   {
-    title: "Гармония",
-    category: "Велнес платформа",
-    image: "https://cdn.poehali.dev/templates/liquid-glass-agency/meditation-app-interface-soft-gradients.jpg",
-    color: "from-purple-500/20 to-pink-500/20",
-    description: "Приложение для медитации с мягкими градиентами и умиротворяющим интерфейсом.",
-    tags: ["Брендинг", "UX/UI"],
-  },
-  {
-    title: "Орбита",
-    category: "Аэрокосмический сайт",
+    title: "Gates of Olympus",
+    category: "Pragmatic Play",
     image: "https://cdn.poehali.dev/templates/liquid-glass-agency/space-website-interface-futuristic.jpg",
-    color: "from-orange-500/20 to-red-500/20",
-    description: "Футуристичный веб-сайт для космической компании с эффектом погружения.",
-    tags: ["Веб-дизайн", "Разработка"],
+    color: "from-yellow-500/20 to-amber-500/20",
+    description: "Боги Олимпа дарят невероятные множители. Легендарный слот с каскадными выплатами.",
+    tags: ["Слот", "Хит"],
+    rtp: "96.50%",
+    hot: true,
+  },
+  {
+    title: "Big Bass Bonanza",
+    category: "Pragmatic Play",
+    image: "https://cdn.poehali.dev/templates/liquid-glass-agency/meditation-app-interface-soft-gradients.jpg",
+    color: "from-blue-500/20 to-cyan-500/20",
+    description: "Рыбалка за большими выигрышами. Расслабляющий геймплей с горячими фриспинами.",
+    tags: ["Слот", "Фриспины"],
+    rtp: "96.71%",
+    hot: false,
   },
 ]
 
 export function Work() {
   return (
-    <section id="work" className="py-32 relative overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-blue-900/10 rounded-full blur-[150px] pointer-events-none" />
+    <section id="games" className="py-32 relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-yellow-900/10 rounded-full blur-[150px] pointer-events-none" />
 
       <div className="container mx-auto px-6 relative z-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-8">
           <div>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-yellow-400 font-semibold uppercase tracking-widest text-sm mb-4"
+            >
+              Популярные игры
+            </motion.p>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-4xl md:text-6xl font-bold mb-6"
             >
-              Избранные работы
+              Топ слоты
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -52,21 +66,21 @@ export function Work() {
               transition={{ delay: 0.1 }}
               className="text-xl text-white/60 max-w-md"
             >
-              Подборка наших последних цифровых трансформаций.
+              Лучшие слоты от Pragmatic Play и других провайдеров — играй на фантики.
             </motion.p>
           </div>
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="px-6 py-3 rounded-full border border-white/20 hover:bg-white/10 transition-colors text-sm font-medium"
+            className="px-6 py-3 rounded-full border border-yellow-400/30 hover:bg-yellow-400/10 transition-colors text-sm font-medium text-yellow-400"
           >
-            Все проекты
+            Все 200+ игр
           </motion.button>
         </div>
 
-        <div className="space-y-20">
-          {projects.map((project, index) => (
+        <div className="space-y-20" id="leaderboard">
+          {games.map((game, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 40 }}
@@ -77,38 +91,94 @@ export function Work() {
               <GlassCard className="p-0 overflow-hidden group">
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className={`p-12 flex flex-col justify-center relative overflow-hidden`}>
-                    <div className={`absolute inset-0 bg-gradient-to-br ${project.color} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
+                    <div className={`absolute inset-0 bg-gradient-to-br ${game.color} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
                     <div className="relative z-10">
-                      <span className="text-sm font-medium text-white/50 mb-4 block uppercase tracking-wider">
-                        {project.category}
-                      </span>
-                      <h3 className="text-4xl md:text-5xl font-bold mb-6 group-hover:translate-x-2 transition-transform duration-500">
-                        {project.title}
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-sm font-medium text-white/50 uppercase tracking-wider">
+                          {game.category}
+                        </span>
+                        {game.hot && (
+                          <span className="px-2 py-1 rounded-full bg-yellow-400/20 border border-yellow-400/30 text-yellow-400 text-xs font-bold flex items-center gap-1">
+                            🔥 Горячий
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-4xl md:text-5xl font-bold mb-4 group-hover:translate-x-2 transition-transform duration-500">
+                        {game.title}
                       </h3>
-                      <p className="text-white/70 mb-8 max-w-md">
-                        {project.description}
+                      <p className="text-white/70 mb-6 max-w-md">
+                        {game.description}
                       </p>
-                      <div className="flex items-center gap-4 text-sm font-medium">
-                        {project.tags.map((tag, tagIndex) => (
+                      <div className="flex items-center gap-3 mb-8 text-sm">
+                        <span className="text-white/50">RTP:</span>
+                        <span className="text-green-400 font-semibold">{game.rtp}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm font-medium flex-wrap">
+                        {game.tags.map((tag, tagIndex) => (
                           <span key={tagIndex} className="px-4 py-2 rounded-full bg-white/5 border border-white/10">
                             {tag}
                           </span>
                         ))}
+                        <button className="px-4 py-2 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-bold flex items-center gap-2 hover:opacity-90 transition-opacity">
+                          <Icon name="Play" size={14} />
+                          Играть
+                        </button>
                       </div>
                     </div>
                   </div>
                   <div className="relative h-[400px] md:h-auto overflow-hidden">
                     <img
-                      src={project.image}
-                      alt={project.title}
+                      src={game.image}
+                      alt={game.title}
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500" />
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors duration-500" />
                   </div>
                 </div>
               </GlassCard>
             </motion.div>
           ))}
+        </div>
+
+        {/* Топ игроков */}
+        <div id="top" className="mt-32">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-bold mb-12 text-center"
+          >
+            🏆 Таблица лидеров
+          </motion.h2>
+          <div className="max-w-2xl mx-auto space-y-4">
+            {[
+              { rank: 1, name: "DragonSlayer", score: "128 500", badge: "🥇" },
+              { rank: 2, name: "LuckyAce", score: "97 200", badge: "🥈" },
+              { rank: 3, name: "SpinMaster", score: "84 700", badge: "🥉" },
+              { rank: 4, name: "GoldenFox", score: "71 300", badge: "4️⃣" },
+              { rank: 5, name: "NightWolf", score: "63 100", badge: "5️⃣" },
+            ].map((player, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+              >
+                <GlassCard className={`flex items-center justify-between py-4 px-6 ${i === 0 ? "border-yellow-400/30 bg-yellow-400/5" : ""}`}>
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl">{player.badge}</span>
+                    <span className="font-semibold text-lg">{player.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Icon name="Coins" size={16} className="text-yellow-400" fallback="Star" />
+                    <span className="text-yellow-400 font-bold">{player.score}</span>
+                    <span className="text-white/40 text-sm">фантиков</span>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

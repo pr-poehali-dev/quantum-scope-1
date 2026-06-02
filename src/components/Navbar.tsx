@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { motion, useScroll, useMotionValueEvent } from "framer-motion"
-import { Menu, X } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import Icon from "@/components/ui/icon"
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -13,10 +13,10 @@ export function Navbar() {
   })
 
   const navLinks = [
-    { name: "Проекты", href: "#work" },
-    { name: "Услуги", href: "#services" },
-    { name: "О нас", href: "#about" },
-    { name: "Контакты", href: "#contact" },
+    { name: "Слоты", href: "#games" },
+    { name: "Рейтинг", href: "#leaderboard" },
+    { name: "Как играть", href: "#how" },
+    { name: "Топ игроки", href: "#top" },
   ]
 
   return (
@@ -35,8 +35,9 @@ export function Navbar() {
           "glass bg-black/40"
         )}
       >
-        <a href="/" className="text-2xl font-bold tracking-tighter relative z-50">
-          Призма<span className="text-blue-400">.</span>
+        <a href="/" className="text-2xl font-bold tracking-tighter relative z-50 flex items-center gap-2">
+          <span className="text-yellow-400">🎰</span>
+          <span className="text-white">Lucky<span className="text-yellow-400">Fan</span></span>
         </a>
 
         {/* Desktop Menu */}
@@ -45,13 +46,13 @@ export function Navbar() {
             <a
               key={link.name}
               href={link.href}
-              className="text-sm font-medium text-white/70 hover:text-white transition-colors"
+              className="text-sm font-medium text-white/70 hover:text-yellow-400 transition-colors"
             >
               {link.name}
             </a>
           ))}
-          <button className="bg-white text-black px-5 py-2 rounded-full text-sm font-semibold hover:bg-white/90 transition-colors">
-            Обсудить проект
+          <button className="bg-gradient-to-r from-yellow-400 to-amber-500 text-black px-5 py-2 rounded-full text-sm font-bold hover:opacity-90 transition-opacity">
+            Войти / Регистрация
           </button>
         </div>
 
@@ -60,16 +61,16 @@ export function Navbar() {
           className="md:hidden relative z-50 text-white"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
-          {isMobileMenuOpen ? <X /> : <Menu />}
+          <Icon name={isMobileMenuOpen ? "X" : "Menu"} />
         </button>
 
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
-            exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-xl z-40 flex items-center justify-center md:hidden"
           >
             <div className="flex flex-col items-center gap-8">
               {navLinks.map((link) => (
@@ -77,13 +78,13 @@ export function Navbar() {
                   key={link.name}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-3xl font-light text-white hover:text-blue-400 transition-colors"
+                  className="text-3xl font-light text-white hover:text-yellow-400 transition-colors"
                 >
                   {link.name}
                 </a>
               ))}
-              <button className="mt-4 bg-white text-black px-8 py-3 rounded-full text-lg font-semibold">
-                Обсудить проект
+              <button className="mt-4 bg-gradient-to-r from-yellow-400 to-amber-500 text-black px-8 py-3 rounded-full text-lg font-bold">
+                Войти / Регистрация
               </button>
             </div>
           </motion.div>
