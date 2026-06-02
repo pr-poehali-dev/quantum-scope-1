@@ -51,6 +51,9 @@ export function Navbar() {
               {link.name}
             </a>
           ))}
+          <a href="/tracker" className="text-sm font-medium text-green-400 hover:text-green-300 transition-colors flex items-center gap-1">
+            👁 Трекер
+          </a>
           <button className="bg-gradient-to-r from-yellow-400 to-amber-500 text-black px-5 py-2 rounded-full text-sm font-bold hover:opacity-90 transition-opacity">
             Войти / Регистрация
           </button>
@@ -83,6 +86,9 @@ export function Navbar() {
                   {link.name}
                 </a>
               ))}
+              <a href="/tracker" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-light text-green-400 hover:text-green-300 transition-colors">
+                👁 Трекер
+              </a>
               <button className="mt-4 bg-gradient-to-r from-yellow-400 to-amber-500 text-black px-8 py-3 rounded-full text-lg font-bold">
                 Войти / Регистрация
               </button>
