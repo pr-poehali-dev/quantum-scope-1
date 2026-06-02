@@ -20,11 +20,40 @@ const RUSSIA_CITIES = [
   { name: "Пермь", lat: 58.0105, lng: 56.2502, region: "Пермский край" },
 ]
 
-const HOBBIES = ["Рыбалка","Игры","Сериалы","Шаурма","Сон","TikTok","Футбол","Чай в 3 ночи","Мемы","Котики"]
-const JOBS = ["Менеджер среднего звена","Студент 5 года","ИП (не работает)","Фрилансер (спит)","Курьер Яндекса","Охранник","Блогер (3 подписчика)"]
-const CRIMES = ["Не вернул долг 200₽","Съел чужой йогурт","Опоздал на 40 минут","Поставил дизлайк","Не ответил в WhatsApp","Пересмотрел 'Друзей' 7 раз","Паркуется на тротуаре"]
-const NICKNAMES = ["Бобёр","Тихоня","Гений","Красавчик","Везунчик","Хитрец","Легенда","Призрак"]
-const MOODS = ["☕ Нуждается в кофе","😴 Хочет спать","🤙 Всё под контролем","😤 Немного злой","🤑 Думает о деньгах","😇 Делает вид что работает"]
+const NICKNAMES = ["Тень","Серый","Лис","Скала","Крот","Призрак","Клык","Змей","Леший","Тихий"]
+const JOBS = [
+  "Официально не трудоустроен","ИП — деятельность приостановлена","Частный извозчик",
+  "Охранник (уволен в 2022)","Строительные работы (неофициально)","Грузоперевозки",
+  "Без определённого рода занятий","Мелкая торговля на рынке",
+]
+const CRIMES_LIST = [
+  { art: "ст. 158 УК РФ", desc: "Кража", year: () => rndInt(2015,2022), result: "Условный срок 1 год" },
+  { art: "ст. 161 УК РФ", desc: "Грабёж", year: () => rndInt(2016,2023), result: "Штраф 80 000 ₽" },
+  { art: "ст. 228 УК РФ", desc: "Хранение наркотических средств", year: () => rndInt(2017,2023), result: "Условный срок 2 года" },
+  { art: "ст. 318 УК РФ", desc: "Применение насилия к представителю власти", year: () => rndInt(2018,2023), result: "Штраф 120 000 ₽" },
+  { art: "ст. 264 УК РФ", desc: "Нарушение ПДД, повлёкшее вред здоровью", year: () => rndInt(2019,2023), result: "Лишение прав на 2 года" },
+  { art: "ст. 119 УК РФ", desc: "Угроза убийством", year: () => rndInt(2018,2023), result: "Обязательные работы 200 ч." },
+  { art: "ст. 213 УК РФ", desc: "Хулиганство", year: () => rndInt(2016,2022), result: "Административный штраф" },
+  { art: "ст. 111 УК РФ", desc: "Умышленное причинение тяжкого вреда здоровью", year: () => rndInt(2017,2023), result: "Реальный срок 3 года" },
+]
+const ASSOC = [
+  "ОПГ «Северные» (не доказано)","Связи с нелегальным игорным бизнесом",
+  "Предполагаемый контакт с группой по сбыту ПАВ","Окружение — лица с судимостями",
+  "Установлены контакты с фигурантами дела №2021-***","Предполагаемое участие в схемах обналичивания",
+]
+const VEHICLES = [
+  "ВАЗ-2114, г/н А***ОС 77 (снят с учёта)","Toyota Camry 2017, г/н В***ЕК 116",
+  "Hyundai Solaris 2019, г/н К***РТ 63","Не установлено","Ford Focus 2015, г/н Н***МП 78",
+  "Kia Rio 2020, г/н С***АВ 52 (зарегистрирована на третье лицо)",
+]
+const STATUSES = ["РАЗЫСКИВАЕТСЯ","ПОД НАБЛЮДЕНИЕМ","СУДИМОСТЬ ПОГАШЕНА","АКТИВНОЕ ДЕЛО","ОПЕРАТИВНЫЙ ИНТЕРЕС"]
+const STATUS_COLORS: Record<string, string> = {
+  "РАЗЫСКИВАЕТСЯ": "#EF5350",
+  "ПОД НАБЛЮДЕНИЕМ": "#FFA726",
+  "СУДИМОСТЬ ПОГАШЕНА": "#66BB6A",
+  "АКТИВНОЕ ДЕЛО": "#EF5350",
+  "ОПЕРАТИВНЫЙ ИНТЕРЕС": "#FFA726",
+}
 
 function rnd<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)] }
 function rndInt(min: number, max: number) { return Math.floor(Math.random() * (max - min + 1)) + min }
@@ -65,10 +94,23 @@ interface TrackResult {
 }
 
 interface DossierResult {
-  name: string; nickname: string; dob: string; city: string
-  phone: string; ip: string; imei: string; job: string
-  hobbies: string[]; crimes: string[]; mood: string
-  trustScore: number; dangerScore: number
+  name: string
+  nickname: string
+  dob: string
+  birthplace: string
+  city: string
+  address: string
+  phone: string
+  ip: string
+  imei: string
+  job: string
+  vehicle: string
+  crimes: { art: string; desc: string; year: number; result: string }[]
+  associations: string[]
+  status: string
+  caseNumber: string
+  dangerScore: number
+  lastActivity: string
 }
 
 const GlassBox = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
@@ -150,20 +192,31 @@ export default function TrackerPage() {
     }
     setDossierLoading(false)
     const city = randomCity()
+    const birthCity = randomCity()
+    const streets = ["ул. Ленина","ул. Гагарина","пр. Мира","ул. Советская","ул. Кирова","ул. Победы","ул. Садовая"]
+    const crimesCount = rndInt(1, 3)
+    const shuffledCrimes = [...CRIMES_LIST].sort(() => Math.random() - 0.5).slice(0, crimesCount)
+    const assocCount = rndInt(1, 2)
+    const shuffledAssoc = [...ASSOC].sort(() => Math.random() - 0.5).slice(0, assocCount)
+    const statusKey = rnd(STATUSES)
     setDossier({
       name: dossierName.trim(),
       nickname: rnd(NICKNAMES),
       dob: randomDate(),
+      birthplace: birthCity.name,
       city: city.name,
+      address: `${city.name}, ${rnd(streets)}, д. ${rndInt(1,150)}, кв. ${rndInt(1,200)}`,
       phone: randomPhone(),
       ip: randomIP(),
       imei: randomIMEI(),
       job: rnd(JOBS),
-      hobbies: [rnd(HOBBIES), rnd(HOBBIES), rnd(HOBBIES)].filter((v,i,a) => a.indexOf(v) === i),
-      crimes: [rnd(CRIMES), rnd(CRIMES)].filter((v,i,a) => a.indexOf(v) === i),
-      mood: rnd(MOODS),
-      trustScore: randomScore(),
-      dangerScore: randomScore(),
+      vehicle: rnd(VEHICLES),
+      crimes: shuffledCrimes.map(c => ({ ...c, year: c.year() })),
+      associations: shuffledAssoc,
+      status: statusKey,
+      caseNumber: `№ ${rndInt(10,99)}-${rndInt(100000,999999)}/${rndInt(20,24)}`,
+      dangerScore: rndInt(5, 10),
+      lastActivity: new Date().toLocaleString("ru-RU"),
     })
     playBeep()
   }
@@ -368,103 +421,131 @@ export default function TrackerPage() {
               {dossier && (
                 <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }} className="space-y-3">
 
+                  {/* Гриф */}
+                  <div className="text-center">
+                    <span className="px-4 py-1 text-xs font-black tracking-[0.3em] rounded"
+                      style={{ background:"rgba(239,83,80,0.1)", border:"1px solid rgba(239,83,80,0.4)", color:"#EF5350" }}>
+                      СЕКРЕТНО // ОПЕРАТИВНОЕ ДОСЬЕ
+                    </span>
+                  </div>
+
                   {/* Шапка */}
                   <GlassBox>
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0"
-                        style={{ background: "rgba(0,255,65,0.08)", border: "1px solid rgba(0,255,65,0.2)" }}>
-                        🕵️
+                    <div className="flex items-start gap-4">
+                      {/* Фото-заглушка */}
+                      <div className="w-20 h-24 rounded-xl shrink-0 flex flex-col items-center justify-center gap-1"
+                        style={{ background:"rgba(0,255,65,0.05)", border:"2px solid rgba(0,255,65,0.2)" }}>
+                        <div className="text-3xl">👤</div>
+                        <div className="text-[8px] text-green-700 uppercase tracking-wider">фото</div>
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xl font-black" style={{ color: G }}>{dossier.name}</span>
-                          <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background:"rgba(0,255,65,0.1)", border:"1px solid rgba(0,255,65,0.3)", color:G }}>
-                            «{dossier.nickname}»
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[10px] text-green-700 uppercase tracking-widest mb-1">Объект наблюдения</div>
+                        <div className="text-lg font-black text-white uppercase">{dossier.name}</div>
+                        <div className="text-sm text-green-500 mt-0.5">кличка: «{dossier.nickname}»</div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <span className="px-2 py-0.5 text-[10px] font-black rounded uppercase tracking-wider"
+                            style={{ background: STATUS_COLORS[dossier.status] + "20", border:`1px solid ${STATUS_COLORS[dossier.status]}60`, color: STATUS_COLORS[dossier.status] }}>
+                            ● {dossier.status}
                           </span>
                         </div>
-                        <div className="text-green-600 text-xs mt-1">ID: #{Math.floor(Math.random()*900000+100000)} • {dossier.mood}</div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-[10px] text-green-700 uppercase">Статус</div>
-                        <motion.div animate={{ opacity:[1,0.4,1] }} transition={{ duration:1.5, repeat:Infinity }}
-                          className="text-xs font-bold" style={{ color:G }}>● АКТИВЕН</motion.div>
+                        <div className="text-[10px] text-green-800 mt-2">Дело {dossier.caseNumber}</div>
                       </div>
                     </div>
                   </GlassBox>
 
                   {/* Личные данные */}
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { label: "ДАТА РОЖДЕНИЯ", value: dossier.dob },
-                      { label: "ГОРОД", value: dossier.city },
-                      { label: "ТЕЛЕФОН", value: dossier.phone },
-                      { label: "IP АДРЕС", value: dossier.ip },
-                      { label: "IMEI УСТРОЙСТВА", value: dossier.imei.slice(0,8)+"*******" },
-                      { label: "МЕСТО РАБОТЫ", value: dossier.job },
-                    ].map((item, i) => (
-                      <motion.div key={i} initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.06 }}>
-                        <GlassBox className="!p-4"><Label>{item.label}</Label><Value>{item.value}</Value></GlassBox>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Увлечения */}
                   <GlassBox>
-                    <Label>УВЛЕЧЕНИЯ И ИНТЕРЕСЫ</Label>
-                    <div className="flex gap-2 flex-wrap mt-2">
-                      {dossier.hobbies.map((h, i) => (
-                        <span key={i} className="px-3 py-1 rounded-full text-xs font-bold"
-                          style={{ background:"rgba(0,255,65,0.08)", border:"1px solid rgba(0,255,65,0.2)", color:G }}>
-                          {h}
-                        </span>
+                    <Label>ПЕРСОНАЛЬНЫЕ ДАННЫЕ</Label>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-3">
+                      {[
+                        { label: "Дата рождения", value: dossier.dob },
+                        { label: "Место рождения", value: dossier.birthplace },
+                        { label: "Фактический адрес", value: dossier.address },
+                        { label: "Место работы", value: dossier.job },
+                      ].map((item, i) => (
+                        <div key={i}>
+                          <div className="text-[9px] uppercase tracking-widest text-green-800 mb-0.5">{item.label}</div>
+                          <div className="text-green-300 text-xs font-semibold">{item.value}</div>
+                        </div>
                       ))}
                     </div>
                   </GlassBox>
 
-                  {/* Нарушения */}
+                  {/* Технические данные */}
                   <GlassBox>
-                    <Label>⚠️ ЗАФИКСИРОВАННЫЕ НАРУШЕНИЯ</Label>
-                    <div className="space-y-2 mt-2">
+                    <Label>ТЕХНИЧЕСКИЕ ИДЕНТИФИКАТОРЫ</Label>
+                    <div className="space-y-2 mt-3">
+                      {[
+                        { label: "Номер телефона", value: dossier.phone },
+                        { label: "IP-адрес (последний)", value: dossier.ip },
+                        { label: "IMEI устройства", value: dossier.imei.slice(0,8)+"·······" },
+                        { label: "Транспортное средство", value: dossier.vehicle },
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center justify-between py-1.5 border-b border-green-900/30 last:border-0">
+                          <span className="text-[10px] uppercase tracking-wider text-green-700">{item.label}</span>
+                          <span className="text-green-300 text-xs font-mono font-bold">{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassBox>
+
+                  {/* Судимости */}
+                  <GlassBox>
+                    <Label>КРИМИНАЛЬНАЯ ИСТОРИЯ</Label>
+                    <div className="space-y-3 mt-3">
                       {dossier.crimes.map((c, i) => (
-                        <motion.div key={i} initial={{ opacity:0,x:-10 }} animate={{ opacity:1,x:0 }} transition={{ delay:0.3+i*0.1 }}
-                          className="flex items-center gap-2 text-sm" style={{ color:"rgba(255,100,80,0.9)" }}>
-                          <span>▸</span> {c}
+                        <motion.div key={i} initial={{ opacity:0,x:-10 }} animate={{ opacity:1,x:0 }} transition={{ delay:0.2+i*0.12 }}
+                          className="rounded-xl p-3" style={{ background:"rgba(239,83,80,0.05)", border:"1px solid rgba(239,83,80,0.2)" }}>
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="text-[10px] font-black tracking-wider" style={{ color:"#EF5350" }}>{c.art}</div>
+                              <div className="text-white text-xs font-semibold mt-0.5">{c.desc}</div>
+                              <div className="text-green-700 text-[10px] mt-1">{c.result}</div>
+                            </div>
+                            <div className="text-[10px] text-green-700 shrink-0">{c.year} г.</div>
+                          </div>
                         </motion.div>
                       ))}
                     </div>
                   </GlassBox>
 
-                  {/* Рейтинги */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <GlassBox className="text-center !p-4">
-                      <Label>УРОВЕНЬ ДОВЕРИЯ</Label>
-                      <div className="text-3xl font-black mt-1" style={{ color: dossier.trustScore >= 7 ? G : "#FFA726" }}>
-                        {dossier.trustScore}/10
-                      </div>
-                      <div className="flex gap-1 justify-center mt-2">
-                        {Array.from({length:10}).map((_,i) => (
-                          <div key={i} className="w-2 h-2 rounded-full" style={{ background: i < dossier.trustScore ? G : "rgba(0,255,65,0.15)" }} />
-                        ))}
-                      </div>
-                    </GlassBox>
-                    <GlassBox className="text-center !p-4">
-                      <Label>УРОВЕНЬ ОПАСНОСТИ</Label>
-                      <div className="text-3xl font-black mt-1" style={{ color: dossier.dangerScore >= 7 ? "#EF5350" : "#FFA726" }}>
-                        {dossier.dangerScore}/10
-                      </div>
-                      <div className="flex gap-1 justify-center mt-2">
-                        {Array.from({length:10}).map((_,i) => (
-                          <div key={i} className="w-2 h-2 rounded-full" style={{ background: i < dossier.dangerScore ? "#EF5350" : "rgba(239,83,80,0.15)" }} />
-                        ))}
-                      </div>
-                    </GlassBox>
-                  </div>
+                  {/* Связи */}
+                  <GlassBox>
+                    <Label>ОПЕРАТИВНЫЕ СВЯЗИ</Label>
+                    <div className="space-y-2 mt-3">
+                      {dossier.associations.map((a, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs">
+                          <span style={{ color:"#FFA726" }}>▸</span>
+                          <span className="text-green-400">{a}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassBox>
+
+                  {/* Уровень опасности */}
+                  <GlassBox className="text-center">
+                    <Label>ОПЕРАТИВНАЯ ОЦЕНКА УГРОЗЫ</Label>
+                    <div className="text-4xl font-black mt-2" style={{ color: dossier.dangerScore >= 8 ? "#EF5350" : dossier.dangerScore >= 6 ? "#FFA726" : G }}>
+                      {dossier.dangerScore}/10
+                    </div>
+                    <div className="flex gap-1.5 justify-center mt-3">
+                      {Array.from({length:10}).map((_,i) => (
+                        <div key={i} className="h-3 rounded-sm flex-1"
+                          style={{ background: i < dossier.dangerScore
+                            ? (dossier.dangerScore >= 8 ? "#EF5350" : dossier.dangerScore >= 6 ? "#FFA726" : G)
+                            : "rgba(255,255,255,0.05)" }} />
+                      ))}
+                    </div>
+                    <div className="text-[10px] text-green-700 mt-2 uppercase tracking-widest">
+                      Последняя активность: {dossier.lastActivity}
+                    </div>
+                  </GlassBox>
 
                   {/* Кнопка сбросить */}
                   <button onClick={() => { setDossier(null); setDossierName("") }}
                     className="w-full py-3 rounded-xl text-sm font-bold transition-colors"
-                    style={{ border:"1px solid rgba(0,255,65,0.2)", color:"rgba(0,255,65,0.5)" }}>
-                    🔄 Новый поиск
+                    style={{ border:"1px solid rgba(0,255,65,0.2)", color:"rgba(0,255,65,0.4)" }}>
+                    ↩ Новый запрос
                   </button>
                 </motion.div>
               )}
