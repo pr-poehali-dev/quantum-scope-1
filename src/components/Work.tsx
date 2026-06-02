@@ -1,6 +1,8 @@
+import { useState } from "react"
 import { GlassCard } from "@/components/ui/glass-card"
 import { motion } from "framer-motion"
 import Icon from "@/components/ui/icon"
+import { SlotModal } from "@/components/SlotModal"
 
 const games = [
   {
@@ -36,6 +38,8 @@ const games = [
 ]
 
 export function Work() {
+  const [activeGame, setActiveGame] = useState<typeof games[0] | null>(null)
+
   return (
     <section id="games" className="py-32 relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-yellow-900/10 rounded-full blur-[150px] pointer-events-none" />
@@ -119,20 +123,30 @@ export function Work() {
                             {tag}
                           </span>
                         ))}
-                        <button className="px-4 py-2 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-bold flex items-center gap-2 hover:opacity-90 transition-opacity">
+                        <button
+                          onClick={() => setActiveGame(game)}
+                          className="px-4 py-2 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-bold flex items-center gap-2 hover:opacity-90 transition-opacity"
+                        >
                           <Icon name="Play" size={14} />
                           Играть
                         </button>
                       </div>
                     </div>
                   </div>
-                  <div className="relative h-[400px] md:h-auto overflow-hidden">
+                  <div
+                    className="relative h-[400px] md:h-auto overflow-hidden cursor-pointer"
+                    onClick={() => setActiveGame(game)}
+                  >
                     <img
                       src={game.image}
                       alt={game.title}
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors duration-500" />
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-500 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Icon name="Play" size={24} className="text-black ml-1" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </GlassCard>
@@ -181,6 +195,8 @@ export function Work() {
           </div>
         </div>
       </div>
+
+      <SlotModal game={activeGame} onClose={() => setActiveGame(null)} />
     </section>
   )
 }
