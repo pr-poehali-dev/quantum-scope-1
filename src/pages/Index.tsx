@@ -1,17 +1,39 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Navbar } from "@/components/Navbar"
+import { Hero } from "@/components/Hero"
+import { Services } from "@/components/Services"
+import { Work } from "@/components/Work"
+import { Footer } from "@/components/Footer"
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 color-black text-black">Добро пожаловать!</h1>
-        <p className="text-xl text-gray-600">тут будет отображаться ваш проект</p>
-      </div>
-      <span className="absolute bottom-8 left-1/2 -translate-x-1/2 inline-block bg-[#FF6637] text-white text-sm px-4 py-2 rounded-full whitespace-nowrap">
-        Подождите 5 минут, Юра создает первую версию проекта с нуля
-      </span>
-    </div>
-  );
-};
+    <main className="min-h-screen bg-black text-white selection:bg-blue-500/30">
+      <Navbar />
+      <Hero />
+      <Services />
+      <Work />
 
-export default Index;
+      {/* Call to Action Section */}
+      <section id="contact" className="py-32 relative">
+        <div className="container mx-auto px-6 text-center relative z-10">
+          <h2 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight">
+            Готовы создать <br />
+            <span className="text-gradient">будущее?</span>
+          </h2>
+          <p className="text-xl text-white/60 mb-12 max-w-2xl mx-auto">
+            Давайте вместе построим нечто невероятное. Ваше видение, наша экспертиза.
+          </p>
+          <button className="px-10 py-5 bg-white text-black rounded-full font-bold text-xl hover:scale-105 transition-transform shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]">
+            Начать проект
+          </button>
+        </div>
+
+        {/* Background Gradient for CTA */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-t from-blue-900/20 to-transparent pointer-events-none" />
+      </section>
+
+      <Footer />
+    </main>
+  )
+}
+
+export default Index
